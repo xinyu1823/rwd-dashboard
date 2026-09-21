@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧通勤與數據儀表板</title>
+    <!-- 引入 Tailwind CSS CDN 快速實現 RWD 響應式排版 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Chart.js 繪製圖表 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+    <!-- 導覽列 -->
+    <nav class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">📊 數據儀表板與最新消息</h1>
+            <span class="text-sm bg-blue-700 px-3 py-1 rounded-full">RWD 響應式網頁</span>
+        </div>
+    </nav>
+
+    <!-- 主要內容容器 -->
+    <main class="container mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- 左側/上方：未來可連接 MySQL 資料庫的圖表區 (佔 2 欄) -->
+        <section class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-800">📈 數據分析圖表</h2>
+                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">資料來源：MySQL (待串接)</span>
+            </div>
+            <!-- 圖表容器，支援 RWD 自適應 -->
+            <div class="relative w-full h-72 md:h-96">
+                <canvas id="myChart"></canvas>
+            </div>
+            <p class="text-xs text-gray-400 mt-3 text-center">提示：未來可透過後端 API 取得 MySQL 資料庫數據並即時更新此圖表。</p>
+        </section>
+
+        <!-- 右側/下方：最新消息區塊 (佔 1 欄) -->
+        <section class="bg-white p-6 rounded-xl shadow-md flex flex-col justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">📢 最新消息</h2>
+                <div class="space-y-4">
+                    <!-- 消息 1 -->
+                    <div class="p-3 bg-blue-50 border-l-4 border-blue-500 rounded-r">
+                        <span class="text-xs text-blue-600 font-bold">2026-06-07</span>
+                        <h3 class="text-sm font-semibold text-gray-800">系統升級公告</h3>
+                        <p class="text-xs text-gray-600 mt-1">預計於本週五進行資料庫效能優化，系統將短暫停機。</p>
+                    </div>
+                    <!-- 消息 2 -->
+                    <div class="p-3 bg-gray-50 border-l-4 border-gray-400 rounded-r">
+                        <span class="text-xs text-gray-500 font-bold">2026-06-01</span>
+                        <h3 class="text-sm font-semibold text-gray-800">智慧通勤通知上線</h3>
+                        <p class="text-xs text-gray-600 mt-1">結合 GitHub Actions 與 Telegram 機器人的氣象通知已正式啟用。</p>
+                    </div>
+                    <!-- 消息 3 -->
+                    <div class="p-3 bg-gray-50 border-l-4 border-gray-400 rounded-r">
+                        <span class="text-xs text-gray-500 font-bold">2026-05-20</span>
+                        <h3 class="text-sm font-semibold text-gray-800">新功能預告</h3>
+                        <p class="text-xs text-gray-600 mt-1">未來將導入 MySQL 歷史數據長條圖與趨勢分析功能。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 text-center">
+                <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 rounded transition">
+                    查看更多歷史公告
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="text-center py-6 text-gray-500 text-sm">
+        &copy; 2026 Smart Commute & Data Dashboard. Hosted on GitHub Pages.
+    </footer>
+
+    <!-- 圖表初始化與未來對接資料庫的 JavaScript 邏輯 -->
+    <script>
+        // 初始化 Chart.js 折線圖
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const commuteChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['週一', '週二', '週三', '週四', '週五', '週六', '週日'],
+                datasets: [{
+                    label: '平均通勤 AQI 指數 (示範數據)',
+                    data: [45, 60, 85, 95, 50, 30, 35],
+                    borderColor: 'rgb(37, 99, 235)',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+
+        /* 
+          [未來連接 MySQL 資料庫的程式碼範例]
+          當您未來寫好後端 API (例如 Node.js 或 Python Flask) 連線 MySQL 並回傳 JSON 時，
+          可以使用以下方式動態更新圖表：
+
+          async function fetchMySQLData() {
+              try {
+                  const response = await fetch('https://your-backend-api.com/get-data');
+                  const result = await response.json();
+                  
+                  // 更新圖表的 X 軸與數據
+                  commuteChart.data.labels = result.labels;
+                  commuteChart.data.datasets[0].data = result.values;
+                  commuteChart.update();
+              } catch (error) {
+                  console.error('無法取得資料庫數據:', error);
+              }
+          }
+          // fetchMySQLData(); // 未來串接時取消註解
+        */
+    </script>
+</body>
+</html>
