@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>即時銷售數據看板</title>
+    <title>即時銷售數據看板 (MySQL API 連動)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 30px; background: #f8f9fa; }
@@ -12,25 +12,49 @@
 </head>
 <body>
     <div class="container">
-        <h2>📊 即時銷售數據分析圖表 (更新資料 (sales_updated))</h2>
+        <h2>📊 即時銷售數據分析圖表 (MySQL 資料庫動態連線)</h2>
         <canvas id="myChart"></canvas>
     </div>
+
     <script>
-        const ctx = document.getElementById('myChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ["\u5f71\u97f3\u8a2d\u5099", "\u884c\u52d5\u914d\u4ef6", "\u96fb\u8166\u5468\u908a"],
-                datasets: [{
-                    label: '銷售數量',
-                    data: [1035, 1287, 2202],
-                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: { responsive: true }
-        });
+        // 1. 定義向 API (MySQL 連接端點) 撈取數據的函數
+        async function fetchSalesData() {
+            try {
+                // 替換為您的後端 API 網址 (例如部署在 Render / Vercel 或 Supabase 轉接端點)
+                const response = await fetch('https://YOUR_API_ENDPOINT/api/sales');
+                const result = await response.json();
+                
+                // 解析資料
+                const labels = result.map(item => item.category);
+                const values = result.map(item => item.quantity);
+
+                renderChart(labels, values);
+            } catch (error) {
+                console.error("無法取得資料庫最新數據：", error);
+            }
+        }
+
+        // 2. 使用 Chart.js 渲染圖表
+        function renderChart(labels, values) {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '銷售數量',
+                        data: values,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true }
+            });
+        }
+
+        // 頁面載入時觸發動態連線
+        fetchSalesData();
     </script>
 </body>
 </html>
