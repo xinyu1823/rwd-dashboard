@@ -1,93 +1,36 @@
-import mysql.connector
-import pandas as pd
-
-# 1. 資料庫連線設定
-db_config = {
-    'host': 'YOUR_AIVEN_HOST',
-    'port': YOUR_AIVEN_PORT,
-    'user': 'avnadmin',
-    'password': 'YOUR_PASSWORD',
-    'database': 'defaultdb'
-}
-
-# 2. 上傳資料至 Aiven MySQL (請依老師給的資料檔名與結構調整)
-# 假設上傳的資料表名稱為 sales_updated_300 或 sales_original_300
-conn = mysql.connector.connect(**db_config)
-cursor = conn.cursor()
-
-# 範例：建立資料表並寫入資料 (以 sales_updated_300 為例)
-# df = pd.read_csv('teacher_data.csv')
-# ...將 df 寫入 MySQL...
-
-# 3. 檢查目前資料庫中存在哪一個資料表
-cursor.execute("SHOW TABLES;")
-tables = [item[0] for item in cursor.fetchall()]
-
-current_table = "Unknown"
-if "sales_updated_300" in tables:
-    current_table = "sales_updated_300"
-elif "sales_original_300" in tables:
-    current_table = "sales_original_300"
-
-# 讀取對應資料表的數據以繪製圖表
-if current_table != "Unknown":
-    df_display = pd.read_sql(f"SELECT * FROM {current_table}", conn)
-else:
-    df_display = pd.DataFrame()
-
-conn.close()
-
-# 轉換數據為 JSON 格式給前端 Chart.js 使用
-labels = df_display['date'].tolist() if 'date' in df_display else []
-data_values = df_display['sales'].tolist() if 'sales' in df_display else []
-
-# 4. 自動生成 index.html
-html_content = f"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>銷售數據畫板</title>
+    <title>即時銷售數據看板</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {{ font-family: Arial, sans-serif; text-align: center; margin: 40px; }}
-        .status {{ font-size: 24px; font-weight: bold; color: #2c3e50; margin-bottom: 20px; }}
-        .chart-container {{ width: 70%; margin: 0 auto; }}
+        body { font-family: Arial, sans-serif; text-align: center; padding: 30px; background: #f8f9fa; }
+        .container { width: 85%; max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
-    <div class="status">當前資料庫來源：<span id="tableName">{current_table}</span></div>
-    <div class="chart-container">
+    <div class="container">
+        <h2>📊 即時銷售數據分析圖表 (原始資料 (sales_original))</h2>
         <canvas id="myChart"></canvas>
     </div>
-
     <script>
         const ctx = document.getElementById('myChart').getContext('2d');
-        const myChart = new Chart(ctx, {{
+        new Chart(ctx, {
             type: 'bar',
-            data: {{
-                labels: {labels},
-                datasets: [{{
-                    label: '銷售量',
-                    data: {data_values},
+            data: {
+                labels: ["\u5f71\u97f3\u8a2d\u5099", "\u884c\u52d5\u914d\u4ef6", "\u96fb\u8166\u5468\u908a"],
+                datasets: [{
+                    label: '銷售數量',
+                    data: [1035, 1017, 1392],
                     backgroundColor: 'rgba(54, 162, 235, 0.6)',
                     borderColor: 'rgba(54, 162, 235, 1)',
                     borderWidth: 1
-                }}]
-            }},
-            options: {{
-                responsive: true,
-                scales: {{
-                    y: {{ beginAtZero: true }}
-                }}
-            }}
-        }});
+                }]
+            },
+            options: { responsive: true }
+        });
     </script>
 </body>
 </html>
-"""
-
-with open("index.html", "w", encoding="utf-8") as f:
-    f.write(html_content)
-
-print("index.html 生成完成！檔名：index.html")
